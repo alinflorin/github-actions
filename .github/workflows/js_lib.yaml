@@ -25,6 +25,25 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Update package.json version
+        run: |
+          NEW_VERSION=${{ inputs.version }}
+          sed -i "s/\"version\": \".*\"/\"version\": \"$NEW_VERSION\"/" package.json
+
+      - name: Run Trivy vulnerability scanner in code mode
+        uses: aquasecurity/trivy-action@master
+        id: code_scan
+        continue-on-error: true
+        with:
+          scan-type: 'fs'
+          scanners: 'vuln,secret,config'
+          scan-ref: .
+          hide-progress: false
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+          exit-code: '1'
+          severity: 'CRITICAL,HIGH'
+        
       - name: Run Trivy in GitHub SBOM mode and submit results to Dependency Graph
         uses: aquasecurity/trivy-action@master
         continue-on-error: true
@@ -64,6 +83,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Update package.json version
+        run: |
+          NEW_VERSION=${{ inputs.version }}
+          sed -i "s/\"version\": \".*\"/\"version\": \"$NEW_VERSION\"/" package.json
 
   publish:
     permissions:
@@ -86,4 +109,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-
+      - name: Update package.json version
+        run: |
+          NEW_VERSION=${{ inputs.version }}
+          sed -i "s/\"version\": \".*\"/\"version\": \"$NEW_VERSION\"/" package.json
