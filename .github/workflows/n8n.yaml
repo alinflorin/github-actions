@@ -40,6 +40,10 @@ jobs:
       - name: Build for publish
         run: pnpm run buildForPublish
 
+      - name: Copy other files to dist
+        run: |
+          cp README.md dist/README.md
+
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
