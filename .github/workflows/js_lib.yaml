@@ -3,6 +3,9 @@ name: JS Library
 on:
   workflow_call:
     inputs:
+      version:
+        required: true
+        type: string
       codeScanDisabled:
         type: boolean
         required: false
