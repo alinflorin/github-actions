@@ -1,0 +1,88 @@
+name: JS Library
+
+on:
+  workflow_call:
+    inputs:
+      version:
+        required: true
+        type: string
+      codeScanDisabled:
+        type: boolean
+        required: false
+        default: false
+
+jobs:
+  code_scan:
+    permissions:
+      security-events: write
+      actions: read
+      contents: read
+      packages: write
+      id-token: write
+    if: ${{ inputs.codeScanDisabled == false }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Run Trivy in GitHub SBOM mode and submit results to Dependency Graph
+        uses: aquasecurity/trivy-action@master
+        continue-on-error: true
+        with:
+          scan-type: 'fs'
+          format: 'github'
+          output: 'dependency-results.sbom.json'
+          image-ref: '.'
+          scan-ref: '.'
+          github-pat: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload result to GitHub Code Scanning
+        uses: github/codeql-action/upload-sarif@v3
+        if: ${{ ((github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main') }}
+        continue-on-error: true
+        with:
+          sarif_file: trivy-results.sarif
+
+      # - name: Fail job if scan failed
+      #   if: ${{ steps.code_scan.outcome == 'failure' }}
+      #   run: exit 1
+
+  build:
+    permissions:
+      id-token: write
+      security-events: write
+      actions: read
+      contents: read
+      packages: write
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: latest
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+
+  publish:
+    permissions:
+      id-token: write
+      security-events: write
+      actions: read
+      contents: read
+      packages: write
+    concurrency:
+      group: npm-${{ github.repository }}
+    runs-on: ubuntu-latest
+    environment: npm
+    steps:
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: latest
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+
