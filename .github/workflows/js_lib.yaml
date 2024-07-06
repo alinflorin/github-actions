@@ -30,6 +30,18 @@ jobs:
           NEW_VERSION=${{ inputs.version }}
           sed -i "s/\"version\": \".*\"/\"version\": \"$NEW_VERSION\"/" package.json
 
+      - name: PNPM Install
+        run: pnpm i
+  
+      - name: Build for publish
+        run: pnpm run buildForPublish
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist
+
   publish:
     permissions:
       id-token: write
@@ -48,10 +60,12 @@ jobs:
         with:
           node-version: latest
 
-      - name: Checkout
-        uses: actions/checkout@v4
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: .
 
-      - name: Update package.json version
+      - name: Publish to npm
         run: |
-          NEW_VERSION=${{ inputs.version }}
-          sed -i "s/\"version\": \".*\"/\"version\": \"$NEW_VERSION\"/" package.json
+          ls -alh
