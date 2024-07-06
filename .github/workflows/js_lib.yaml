@@ -76,6 +76,7 @@ jobs:
       group: npm-${{ github.repository }}
     runs-on: ubuntu-latest
     environment: npm
+    needs: [build]
     steps:
       - name: Setup Node
         uses: actions/setup-node@v4
